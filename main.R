@@ -20,3 +20,22 @@ out <- simulate(
   n_subjects = 10,
   n_obs_per = 5
 )
+
+
+# This creates the figures for the paper
+source("figures.R")
+
+data_rc <- get_data(1,2,V_list$RC,3)
+data_plot_rc <- make_data_plot(data)
+
+data_ar1 <- get_data(1,2,V_list$AR1,3)
+data_plot_ar1 <- make_data_plot(data_ar1)
+
+data_cs <- get_data(1,2,V_list$CS,3)
+data_plot_cs <- make_data_plot(data_cs)
+
+power_curve <- make_power_curve(
+  beta_1_values = seq(0, 1.6, by = 0.1),
+  n_replications = 100,
+  n_subjects = 10
+)
