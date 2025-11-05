@@ -94,3 +94,44 @@ make_power_curve <- function(beta_1_values, n_replications, n_subjects){
   
 }
 
+
+
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(patchwork)  # for side-by-side layout
+
+# helper function to convert to data frame for ggplot
+mat_to_df <- function(mat, name) {
+  as.data.frame(mat) |>
+    mutate(Row = factor(1:nrow(mat))) |>
+    pivot_longer(-Row, names_to = "Col", values_to = "Value") |>
+    mutate(Col = factor(gsub("V", "", Col)), Matrix = name)
+}
+
+df_all <- bind_rows(
+  mat_to_df(V_list$CS, "CS"),
+  mat_to_df(V_list$AR1, "AR1"),
+  mat_to_df(V_list$RC, "RC")
+)
+
+df_all <- df_all %>%
+  mutate(Label = sprintf("%.2f", Value))
+
+covariance_heatmaps <- ggplot(df_all, aes(x = Col, y = Row, fill = Value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Label), color = "white", size = 3, fontface = "bold") +
+  scale_fill_viridis_c(option = "turbo") +
+  scale_y_discrete(limits = rev(levels(df_all$Row))) +  # reverse y-axis
+  coord_equal() +
+  facet_wrap(~Matrix, nrow = 1) +
+  theme_minimal(base_size = 12) +
+  labs(x = "Column", y = "Row", fill = "Value") +
+  theme(panel.grid = element_blank(),
+        strip.text = element_text(face = "bold"))
+
+# display
+print(covariance_heatmaps)
+
+# save to PDF
+ggsave("covariance_heatmaps.pdf", plot = covariance_heatmaps, device = "pdf", width = 10, height = 4)
