@@ -65,7 +65,7 @@ simulate <- function(
     lrt_tab <- stats::anova(fit_full_ml, fit_null_ml)
     results[rep, "compound_lrt_p"] <- lrt_tab$`Pr(>Chisq)`[2]
 
-    # Wald (REML) for treatment:time
+    # (REML) for treatment:time
     fit_reml <- lme4::lmer(
       response ~ -1 + treatment * time + (1 | subject),
       data = dat,
@@ -74,7 +74,7 @@ simulate <- function(
     C <- matrix(c(0, 0, 0, 1), nrow = 1) # contrast for treatment:timetreatment1:time
     bhat <- lme4::fixef(fit_reml)
     Vb <- as.matrix(stats::vcov(fit_reml))
-    W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat)) # chi-square(1)
+    W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat))
     results[rep, "compound_f_p"] <- stats::pf(
       W,
       df1 = 1,
@@ -107,7 +107,6 @@ simulate <- function(
     lrt_tab <- stats::anova(fit_full_gls_ml, fit_null_gls_ml)
     results[rep, "ar_lrt_p"] <- lrt_tab$`p-value`[2]
 
-    # Wald (REML)
     fit_gls_reml <- nlme::gls(
       response ~ -1 + treatment * time,
       correlation = nlme::corAR1(form = ~ 1 | subject),
