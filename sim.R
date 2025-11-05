@@ -73,11 +73,7 @@ simulate <- function(
     bhat <- lme4::fixef(fit_reml)
     Vb <- as.matrix(stats::vcov(fit_reml))
     W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat)) # chi-square(1)
-    results[rep, "compound_wald_p"] <- stats::pchisq(
-      W,
-      df = 1,
-      lower.tail = FALSE
-    )
+    results[rep, "compound_wald_p"] <- stats::pf(Fval, df1 = 1, df2 = 2*nrow(results), lower.tail = FALSE)
 
     ## ----- 2) AR(1) block: fit GLS with AR(1) -----
     dat <- get_data(
@@ -116,7 +112,7 @@ simulate <- function(
     # Coef order: (-1 + treatment*time) -> c(treatment0, treatment1, time, treatment1:time)
     # Same contrast:
     W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat))
-    results[rep, "ar_wald_p"] <- stats::pchisq(W, df = 1, lower.tail = FALSE)
+    results[rep, "ar_wald_p"] <- stats::pf(Fval, df1 = 1, df2 = 2*nrow(results), lower.tail = FALSE)
 
     ## ----- 3) Random coefficients block: fit RI+RS LMM -----
     dat <- get_data(
@@ -150,11 +146,7 @@ simulate <- function(
     bhat <- lme4::fixef(fit_reml)
     Vb <- as.matrix(stats::vcov(fit_reml))
     W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat))
-    results[rep, "rancoef_wald_p"] <- stats::pchisq(
-      W,
-      df = 1,
-      lower.tail = FALSE
-    )
+    results[rep, "rancoef_wald_p"] <- stats::pf(Fval, df1 = 1, df2 = 2*nrow(results), lower.tail = FALSE)
 
     if (show_progress) utils::setTxtProgressBar(pb, rep)
   }
