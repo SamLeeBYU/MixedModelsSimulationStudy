@@ -148,7 +148,7 @@ simulate <- function(
     lrt_tab <- stats::anova(fit_full_ml, fit_null_ml)
     results[rep, "rancoef_lrt_p"] <- lrt_tab$`Pr(>Chisq)`[2]
 
-    # Wald (REML)
+    # (REML)
     fit_reml <- lme4::lmer(
       response ~ -1 + treatment * time + (time | subject),
       data = dat,

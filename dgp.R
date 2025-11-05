@@ -37,3 +37,31 @@ get_data <- function(beta_0, beta_1, covariance_block, n_sub, n_obs_per = 5) {
   rownames(dat) <- NULL
   dat
 }
+
+datCS <- get_data(
+  1,
+  1,
+  V_list$CS,
+  n_sub = 1,
+  n_obs_per = 5
+)
+datCS$CovStructure <- "Compounds Symmetric"
+datRC <- get_data(
+  1,
+  1,
+  V_list$RC,
+  n_sub = 1,
+  n_obs_per = 5
+)
+datRC$CovStructure <- "Random Coefficients"
+datAR <- get_data(
+  1,
+  1,
+  V_list$AR1,
+  n_sub = 1,
+  n_obs_per = 5
+)
+datAR$CovStructure <- "AR(1)"
+
+#Sample for paper
+# rbind(datCS, rbind(datRC, datAR))

@@ -25,14 +25,23 @@ out <- simulate(
 # This creates the figures for the paper
 source("figures.R")
 
-data_rc <- get_data(1,2,V_list$RC,3)
-data_plot_rc <- make_data_plot(data)
+data_rc <- get_data(1, 2, V_list$RC, 10)
+data_plot_rc <- make_data_plot(data_rc)
 
-data_ar1 <- get_data(1,2,V_list$AR1,3)
+data_ar1 <- get_data(1, 2, V_list$AR1, 10)
 data_plot_ar1 <- make_data_plot(data_ar1)
 
-data_cs <- get_data(1,2,V_list$CS,3)
+data_cs <- get_data(1, 2, V_list$CS, 10)
 data_plot_cs <- make_data_plot(data_cs)
+
+p <- data_plot_rc + data_plot_ar1 + data_plot_cs
+ggsave(
+  filename = "data_plots.png",
+  plot = p,
+  width = 16,
+  height = 4,
+  dpi = 600
+)
 
 power_curve <- make_power_curve(
   beta_1_values = seq(0, 1.6, by = 0.1),
