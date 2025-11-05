@@ -2,6 +2,7 @@
 
 library(lme4)
 library(nlme)
+library(lmerTest)
 
 # Requires: lme4, nlme
 # Assumes you already defined get_data(beta_0, beta_1, covariance_block, n_sub, n_obs_per)
@@ -13,6 +14,7 @@ simulate <- function(
   beta_1 = 0, # set 0 for size; >0 for power
   n_subjects = 10,
   n_obs_per = 5,
+  alpha = 0.05,
   show_progress = TRUE
 ) {
   stopifnot(
@@ -27,11 +29,11 @@ simulate <- function(
   results <- matrix(NA_real_, nrow = n_replications, ncol = 6)
   colnames(results) <- c(
     "compound_lrt_p",
-    "compound_wald_p",
+    "compound_f_p",
     "ar_lrt_p",
-    "ar_wald_p",
+    "ar_f_p",
     "rancoef_lrt_p",
-    "rancoef_wald_p"
+    "rancoef_f_p"
   )
 
   # progress bar
@@ -73,7 +75,12 @@ simulate <- function(
     bhat <- lme4::fixef(fit_reml)
     Vb <- as.matrix(stats::vcov(fit_reml))
     W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat)) # chi-square(1)
-    results[rep, "compound_wald_p"] <- stats::pf(Fval, df1 = 1, df2 = 2*nrow(results), lower.tail = FALSE)
+    results[rep, "compound_f_p"] <- stats::pf(
+      W,
+      df1 = 1,
+      df2 = 2 * n_subjects,
+      lower.tail = FALSE
+    )
 
     ## ----- 2) AR(1) block: fit GLS with AR(1) -----
     dat <- get_data(
@@ -112,7 +119,12 @@ simulate <- function(
     # Coef order: (-1 + treatment*time) -> c(treatment0, treatment1, time, treatment1:time)
     # Same contrast:
     W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat))
-    results[rep, "ar_wald_p"] <- stats::pf(Fval, df1 = 1, df2 = 2*nrow(results), lower.tail = FALSE)
+    results[rep, "ar_f_p"] <- stats::pf(
+      W,
+      df1 = 1,
+      df2 = 2 * n_subjects,
+      lower.tail = FALSE
+    )
 
     ## ----- 3) Random coefficients block: fit RI+RS LMM -----
     dat <- get_data(
@@ -146,7 +158,12 @@ simulate <- function(
     bhat <- lme4::fixef(fit_reml)
     Vb <- as.matrix(stats::vcov(fit_reml))
     W <- as.numeric(t(C %*% bhat) %*% solve(C %*% Vb %*% t(C)) %*% (C %*% bhat))
-    results[rep, "rancoef_wald_p"] <- stats::pf(Fval, df1 = 1, df2 = 2*nrow(results), lower.tail = FALSE)
+    results[rep, "rancoef_f_p"] <- stats::pf(
+      W,
+      df1 = 1,
+      df2 = 2 * n_subjects,
+      lower.tail = FALSE
+    )
 
     if (show_progress) utils::setTxtProgressBar(pb, rep)
   }
@@ -157,6 +174,6 @@ simulate <- function(
   # Return list: raw p-values and size/power summaries at alpha=0.05
   list(
     results = results,
-    reject_rates_alpha_0_05 = colMeans(results < 0.05, na.rm = TRUE)
+    reject_rates_alpha = colMeans(results < alpha, na.rm = TRUE)
   )
 }
